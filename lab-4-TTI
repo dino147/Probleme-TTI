@@ -1,0 +1,208 @@
+import math
+from typing import List
+import heapq
+import numpy as np
+
+def is_integer_num(n):
+    if isinstance(n, int):
+        return True
+    if isinstance(n, float):
+        return n.is_integer()
+    return False
+
+class Node:
+    def __init__(self, p, s):
+        self.left = None
+        self.right = None
+        self.prob = p
+        self.symbol = s
+
+    def __lt__(self, other):
+        return self.prob < other.prob
+
+    def __repr__(self):
+        return "Node({}, {}, {})". format(repr([self.prob, self.symbol]), repr(self.left), repr(self.right))
+
+def HuffmanTree(SP):
+    pq = []
+    for symbol, prob in SP.items():
+        pq.append(Node(prob, symbol))
+    heapq.heapify(pq)
+
+    while len(pq) > 1:
+        n1 = heapq.heappop(pq)
+        n2 = heapq.heappop(pq)
+        top = Node(n1.prob + n2.prob, n1.symbol + n2.symbol)
+        top.left = n1
+        top.right = n2
+        heapq.heappush(pq, top)
+        #print(pq, '\n')
+
+    return pq
+
+def encode(dic_code, root, code):
+    # vom apela recursiv functia pana ajungem la frunze - cele mai mici probabilitati
+    # in dic_code se salveaza codul
+    if root.left is None and root.right is None:
+        dic_code[root.symbol] = code
+    else:
+        encode(dic_code, root.left, code + '0')
+        encode(dic_code, root.right, code + '1')
+
+def p1(S: List[str], P: List[float]) -> List[float]:
+    SP = dict((S[i], P[i]) for i in range(len(S)))
+    dic_code = dict((S[i], '') for i in range(len(S)))
+    PQ = HuffmanTree(SP)
+    encode(dic_code=dic_code, root=PQ[0], code='')
+
+    probS = {}
+
+    # in probS[key] sunt puse simbolurile si probabilitatile asociate lor
+    for key in dic_code:
+        probS[key] = P[S.index(key)] # S.index(key) returneaza index-ul la care se afla key
+
+    # Lungimea medie
+    lmed = 0
+    for key in probS:
+        lmed = lmed + probS[key] * len(dic_code[key])
+
+    # Eficienta codului
+    H = 0
+    for key in probS:
+        H = H - probS[key] * math.log2(probS[key])
+
+    lmin = H # avem codare binara, deci nu mai este necesar H/math.log2(2) pt ca math.log2(2) = 1
+
+    eficienta = lmin/lmed # calc eficienta codarii
+
+    # Calc valoarea K pentru Inegalitatea Kraft-McMillan (formula 4.9 platforma)
+    K = 0
+    for key in probS:
+        K = K + math.pow(2, -len(dic_code[key]))
+
+    return [lmed, eficienta, K] # returnam o lista formata din lmed, eficienta si K
+
+
+"""class Node:
+    def __init__(self, p, s):
+        self.left = None
+        self.middle = None
+        self.right = None
+        self.prob = p
+        self.symbol = s
+
+    def __lt__(self, other):
+        return self.prob < other.prob
+
+    def __repr__(self):
+        return "Node({}, {}, {})". format(repr([self.prob, self.symbol]), repr(self.left), repr(self.middle), repr(self.right))
+
+def HuffmanTree(SP):
+    pq = []
+    for symbol, prob in SP.items():
+        pq.append(Node(prob, symbol))
+    if not is_integer_num((len(pq) - 3) / 2):
+        pq.append(Node(0, ' '))
+    heapq.heapify(pq)
+
+
+
+    while len(pq) > 1:
+        n1 = heapq.heappop(pq)
+        n2 = heapq.heappop(pq)
+        n3 = heapq.heappop(pq)
+        top = Node(n1.prob + n2.prob + n3.prob, n1.symbol + n2.symbol + n3.symbol)
+        top.left = n1
+        top.middle = n2
+        top.right = n3
+        heapq.heappush(pq, top)
+        #print(pq, '\n')
+
+    return pq
+
+def encode(dic_code, root, code):
+    # vom apela recursiv functia pana ajungem la frunze - cele mai mici probabilitati
+    # in dic_code se salveaza codul
+    if root.left is None and root.middle is None and root.right is None:
+        dic_code[root.symbol] = code
+    else:
+        encode(dic_code, root.left, code + '0')
+        encode(dic_code, root.middle, code + '1')
+        encode(dic_code, root.right, code + '2')
+
+def getIdx(S: List[str], key):
+    try:
+        idx = S.index(key)
+    except ValueError:
+        idx = -1
+
+    return idx
+
+def p2(S: List[str], P: List[float]) -> float:
+    SP = dict((S[i], P[i]) for i in range(len(S)))
+    dic_code = dict((S[i], '') for i in range(len(S)))
+    PQ = HuffmanTree(SP)
+    encode(dic_code=dic_code, root=PQ[0], code='')
+
+    probS = {}
+
+    # in probS[key] sunt puse simbolurile si probabilitatile asociate lor
+    for key in dic_code:
+
+        if getIdx(S, key) != -1:
+            probS[key] = P[S.index(key)] # S.index(key) returneaza index-ul la care se afla key
+
+    # Lungimea medie
+    lmed = 0
+    for key in probS:
+        lmed = lmed + probS[key] * len(dic_code[key])
+
+    return lmed
+"""
+
+def p3(text: str) -> List[int]:
+    S = []
+    aparitii = {}
+    P = []
+    n = len(set(text))
+    for c in text:
+        if not c in S:
+            S.append(c)
+            aparitii[c] = 1
+        else:
+            aparitii[c] = aparitii[c] + 1
+
+    for c in S:
+        P.append(aparitii[c]/n)
+
+    #print(S)
+    #print(P)
+    SP = dict((S[i], P[i]) for i in range(len(S)))
+    dic_code = dict((S[i], '') for i in range(len(S)))
+    PQ = HuffmanTree(SP)
+    encode(dic_code=dic_code, root=PQ[0], code='')
+
+    probS = {}
+
+    # in probS[key] sunt puse simbolurile si probabilitatile asociate lor
+    for key in dic_code:
+        probS[key] = P[S.index(key)]  # S.index(key) returneaza index-ul la care se afla key
+
+    # Nr total de biti
+    codN = 0 # biti necesari codarii intregului text folosind codarea Huffman
+    for key in text:
+        codN = codN + len(dic_code[key])
+
+    codLog = math.ceil(math.log2(len(S))) * len(text) # biti necesari codari intregului text daca se codeaza pe log2(n) biti
+
+    return [codN, codLog]
+
+S = ['S1', 'S2', 'S3', 'S4']
+P = [0.1, 0.3, 0.5, 0.1]
+#print(p2(S, P))
+print(p1(S, P))
+#print(p3('Ana are mere. Mihai Stanciu nu suge pula așa de mult. Buri intră în depresie.'))
+#print(p3('teoria transmisiunii informatiei'))
+#print(p3('bine ati venit'))
+#print(p3('aab caacb bbcca bbbccb'))
+print(p3('There are no secrets to success. It is the result of preparation, hard work, and learning from failure.'))
