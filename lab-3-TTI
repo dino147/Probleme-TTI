@@ -1,0 +1,58 @@
+from ctypes import Union
+from typing import List
+
+import numpy as np
+
+def p1(a: str, p: float):
+    if p >= 0 and p <= 1:
+        if a == 'CBS':
+            if p==0 or p==1 :
+                return 1.0
+            return 1 - p * np.log2(p) - (1 - p) * np.log2(1 - p)
+        elif a == 'CBA':
+            return 1 - p
+    return 'Date de intrare invalide!'
+
+def p2(lp: List[float]):
+    cap = []
+    for p in lp:
+        if p < 0 or p > 1:
+            return 'Date de intrare invalide!'
+        elif p == 0:
+            cap.append(np.log(3))
+        elif p == 1:
+            cap.append(np.log2(3) - 1)
+        else:
+            cap.append(np.log2(3) + (1 - p) * np.log2(1 - p) + p * np.log2(p/2))
+
+    return cap
+
+def p3(α: float) -> List[float]:
+    # Problema 3 Laborator 3 TTI
+    rez = []
+    Hy = -0.5 * α * np.log(α/2) - (1 - α/2) * np.log(1 - α/2)
+    Hxy = α
+    Ixy = Hy - Hxy
+    rez.append(Ixy)
+
+    C = 0
+    pmax = 0
+    for i in range(1, 100):
+        p = i * 0.01
+        Ixy = -0.5 * p * np.log2(p/2) - (1 - p/2) * np.log2(1 - p/2) - p
+        if Ixy > C:
+            C = Ixy
+            pmax = p
+
+    rez.append(C)
+    rez.append(pmax)
+
+    return rez
+
+def p4(Px: float, N: float, W: float) -> float:
+    return W * np.log2(1 + Px/N)
+
+print(p1('CBS', 0.2))
+#print(p2([0.1, 0.2, 0.3, 0.5]))
+#print(p3(0.1))
+#print(p4(12.441, 4.123, 0.183))
